@@ -1,11 +1,17 @@
 #[macro_use]
 extern crate rocket;
+use std::str::FromStr;
+
 use mongo::connect_to_db;
-use mongodb::bson::{doc, Document, Serializer};
 use rocket::{
-    futures::TryStreamExt, serde::{json::Json, Serialize}
+    futures::{TryFutureExt, TryStreamExt},
+    serde::json::Json,
 };
 use types::Todo;
+use wither::{
+    bson::{doc, oid::ObjectId},
+    Model,
+};
 
 #[get("/")]
 pub async fn get_todos() -> Result<Json<Vec<Todo>>, String> {
@@ -13,92 +19,108 @@ pub async fn get_todos() -> Result<Json<Vec<Todo>>, String> {
         .await
         .map_err(|err| err.to_string())?;
 
-    let todos_cursor: mongodb::Cursor<Todo> = db
-        .collection("todos")
-        .find(None, None)
+    Todo::sync(&db).map_err(|err| err.to_string()).await?;
+
+    let cursor = Todo::find(&db, None, None)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    let result: Vec<Todo> = cursor
+        .try_collect()
         .await
-        .map_err(|err| err.to_string())?;
-
-    let result: Vec<Todo> = todos_cursor.try_collect().await.expect("Failed to convert document.");
-
+        .expect("Failed to convert document.");
     Ok(Json(result))
 }
 
 #[get("/<id>")]
-pub async fn get_todo(id: u32) -> Result<Json<Todo>, String> {
+pub async fn get_todo(id: String) -> Result<Json<Todo>, String> {
     let db = connect_to_db("todoApp".to_string())
         .await
         .map_err(|err| err.to_string())?;
 
-    let filter = doc! {"id": id};
+    Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
-    let todo_cursor:  Option<Todo> = db
-        .collection("todos")
-        .find_one(filter, None)
-        .await.map_err(|err| err.to_string())?;
-    
-    
-    let result: Todo = todo_cursor.unwrap();
+    let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
 
-    Ok(Json(result))
+    let filter = doc! {"_id": oid};
+
+    let result = Todo::find_one(&db, filter, None)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    let todo: Todo = result.unwrap();
+    println!("{:#?}", &todo.id);
+    Ok(Json(todo))
 }
 
 #[post("/", format = "application/json", data = "<todo>")]
-pub async fn add_todo(todo: Json<Todo>) -> Result<Json<mongodb::results::InsertOneResult>, String> {
+pub async fn add_todo(todo: Json<Todo>) -> Result<Json<Todo>, String> {
     let db = connect_to_db("todoApp".to_string())
         .await
         .map_err(|err| err.to_string())?;
 
-    let serialized_todo = todo
-        .serialize(Serializer::new())
-        .map_err(|err| err.to_string())?;
+    Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
-    let new_todo_doc = Document::from(serialized_todo.as_document().unwrap().clone());
+    let deserialized_todo: Todo = todo.into_inner();
 
-    let inserted_result: mongodb::results::InsertOneResult = db
-        .collection("todos")
-        .insert_one(new_todo_doc, None)
-        .await
-        .map_err(|err| err.to_string())?;
+    let mut new_todo_doc = Todo {
+        id: None,
+        body: deserialized_todo.body,
+        completed: deserialized_todo.completed,
+    };
 
-    Ok(Json(inserted_result))
+    new_todo_doc
+        .save(&db, None)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    Ok(Json(new_todo_doc))
 }
 
 #[put("/<id>", format = "application/json", data = "<todo>")]
-pub async fn update_todo(id: u32, todo: Json<Todo>) -> Result<Json<u64>, String> {
+pub async fn update_todo(id: String, todo: Json<Todo>) -> Result<Json<Todo>, String> {
     let db = connect_to_db("todoApp".to_string())
         .await
         .map_err(|err| err.to_string())?;
 
-    let serialized_todo = todo
-        .serialize(Serializer::new())
-        .map_err(|err| err.to_string())?;
+    Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
-    let query = doc! {"id": id};
-    let update = doc! {"$set": Document::from(serialized_todo.as_document().unwrap().clone())};
+    let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
 
-    let updated_result: mongodb::results::UpdateResult = db
-        .collection::<Todo>("todos")
-        .update_one(query, update, None)
-        .await
-        .map_err(|err| err.to_string())?;
+    let deserialized_todo: Todo = todo.into_inner();
+    let filter_query = doc! {"_id": oid};
 
-    Ok(Json(updated_result.modified_count))
+    let result = Todo::find_one(&db, filter_query, None)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    let mut todo = result.unwrap();
+
+    todo.body = deserialized_todo.body;
+    todo.completed = deserialized_todo.completed;
+    todo.save(&db, None).map_err(|err| err.to_string()).await?;
+
+    Ok(Json(todo))
 }
 
 #[delete("/<id>")]
-pub async fn delete_todo(id: u32) -> Result<Json<u64>, String> {
+pub async fn delete_todo(id: String) -> Result<Json<Todo>, String> {
     let db = connect_to_db("todoApp".to_string())
         .await
         .map_err(|err| err.to_string())?;
 
-    let query = doc! {"id": id};
+    Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
-    let deleted_result: mongodb::results::DeleteResult = db
-        .collection::<Todo>("todos")
-        .delete_one(query, None)
-        .await
-        .map_err(|err| err.to_string())?;
+    let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
+    let filter_query = doc! {"_id": oid};
 
-    Ok(Json(deleted_result.deleted_count))
+    let result = Todo::find_one(&db, filter_query, None)
+        .map_err(|err| err.to_string())
+        .await?;
+
+    let todo = result.unwrap();
+
+    todo.delete(&db).map_err(|err| err.to_string()).await?;
+
+    Ok(Json(todo))
 }

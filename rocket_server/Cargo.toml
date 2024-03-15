@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 rocket = "0.5"
 rocket_cors = "0.6.0"
+
 todo = { path = "./controllers/todo" }
 types = { path = "./types" }
 mongo = {path = "./mongo"}
