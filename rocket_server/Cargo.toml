@@ -1,0 +1,14 @@
+workspace = { members = ["controllers/todo", "mongo", "types"] }
+[package]
+name = "hello_rocket"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.5"
+rocket_cors = "0.6.0"
+todo = { path = "./controllers/todo" }
+types = { path = "./types" }
+mongo = {path = "./mongo"}
