@@ -1,6 +1,6 @@
 workspace = { members = ["controllers/todo", "mongo", "types"] }
 [package]
-name = "hello_rocket"
+name = "rocket_server"
 version = "0.1.0"
 edition = "2021"
 
