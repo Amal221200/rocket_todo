@@ -1,8 +1,14 @@
 #[macro_use]
 extern crate rocket;
-use rocket::{http::Method, Build, Rocket};
+#[macro_use]
+extern crate dotenv_codegen;
+
+use rocket::{futures::TryFutureExt, http::Method, Build, Rocket};
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
+use wither::mongodb::Database;
+
 use todo;
+use mongo::connect_to_db;
 
 #[get("/")]
 fn index() -> String {
@@ -10,8 +16,18 @@ fn index() -> String {
 }
 
 #[launch]
-fn launch() -> Rocket<Build> {
-    let allowed_origins: rocket_cors::AllOrSome<rocket_cors::Origins> = AllowedOrigins::some_exact(&["http://localhost:5173"]);
+async fn launch() -> Rocket<Build> {
+    
+    let allowed_origins: rocket_cors::AllOrSome<rocket_cors::Origins> =
+        AllowedOrigins::some_exact(&[dotenv!("ALLOWED_ORIGIN")]);
+
+    let db: Option<Database> = match connect_to_db(dotenv!("DATABASE_NAME"))
+        .map_err(|err| err.to_string())
+        .await
+    {
+        Ok(db) => Some(db),
+        Err(_err) => None,
+    };
 
     let cors_options: Result<rocket_cors::Cors, String> = rocket_cors::CorsOptions {
         allowed_origins,
@@ -22,17 +38,21 @@ fn launch() -> Rocket<Build> {
         allowed_headers: AllowedHeaders::some(&["Authorization", "Accept"]),
         allow_credentials: true,
         ..Default::default()
-    } 
+    }
     .to_cors()
     .map_err(|err: rocket_cors::Error| err.to_string());
 
     let cors: Option<rocket_cors::Cors> = match cors_options {
-        Ok(cors)=> Some(cors),
-        Err(_err) => None
+        Ok(cors) => Some(cors),
+        Err(_err) => {
+            println!("{}", _err);
+            None
+        }
     };
 
     rocket::build()
         .mount("/", routes![index])
+        .manage(db.unwrap())
         .mount(
             "/todo",
             routes![

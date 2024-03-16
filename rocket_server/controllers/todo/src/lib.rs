@@ -2,23 +2,18 @@
 extern crate rocket;
 use std::str::FromStr;
 
-use mongo::connect_to_db;
 use rocket::{
     futures::{TryFutureExt, TryStreamExt},
-    serde::json::Json,
+    serde::json::Json, State,
 };
 use types::Todo;
 use wither::{
-    bson::{doc, oid::ObjectId},
-    Model,
+    bson::{doc, oid::ObjectId}, mongodb::Database, Model
 };
 
 #[get("/")]
-pub async fn get_todos() -> Result<Json<Vec<Todo>>, String> {
-    let db = connect_to_db("todoApp".to_string())
-        .await
-        .map_err(|err| err.to_string())?;
-
+pub async fn get_todos(db: &State<Database>) -> Result<Json<Vec<Todo>>, String> {
+    
     Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
     let cursor = Todo::find(&db, None, None)
@@ -33,11 +28,8 @@ pub async fn get_todos() -> Result<Json<Vec<Todo>>, String> {
 }
 
 #[get("/<id>")]
-pub async fn get_todo(id: String) -> Result<Json<Todo>, String> {
-    let db = connect_to_db("todoApp".to_string())
-        .await
-        .map_err(|err| err.to_string())?;
-
+pub async fn get_todo(db: &State<Database>, id: &str) -> Result<Json<Todo>, String> {
+    
     Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
     let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
@@ -54,11 +46,7 @@ pub async fn get_todo(id: String) -> Result<Json<Todo>, String> {
 }
 
 #[post("/", format = "application/json", data = "<todo>")]
-pub async fn add_todo(todo: Json<Todo>) -> Result<Json<Todo>, String> {
-    let db = connect_to_db("todoApp".to_string())
-        .await
-        .map_err(|err| err.to_string())?;
-
+pub async fn add_todo(db: &State<Database>, todo: Json<Todo>) -> Result<Json<Todo>, String> {
     Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
     let deserialized_todo: Todo = todo.into_inner();
@@ -78,11 +66,7 @@ pub async fn add_todo(todo: Json<Todo>) -> Result<Json<Todo>, String> {
 }
 
 #[put("/<id>", format = "application/json", data = "<todo>")]
-pub async fn update_todo(id: String, todo: Json<Todo>) -> Result<Json<Todo>, String> {
-    let db = connect_to_db("todoApp".to_string())
-        .await
-        .map_err(|err| err.to_string())?;
-
+pub async fn update_todo(db: &State<Database>, id: &str, todo: Json<Todo>) -> Result<Json<Todo>, String> {
     Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
     let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
@@ -104,11 +88,7 @@ pub async fn update_todo(id: String, todo: Json<Todo>) -> Result<Json<Todo>, Str
 }
 
 #[delete("/<id>")]
-pub async fn delete_todo(id: String) -> Result<Json<Todo>, String> {
-    let db = connect_to_db("todoApp".to_string())
-        .await
-        .map_err(|err| err.to_string())?;
-
+pub async fn delete_todo(db: &State<Database>, id: &str) -> Result<Json<Todo>, String> {
     Todo::sync(&db).map_err(|err| err.to_string()).await?;
 
     let oid = ObjectId::from_str(&id).map_err(|err| err.to_string())?;
