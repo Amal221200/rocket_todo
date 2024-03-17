@@ -33,6 +33,7 @@ async fn launch() -> Rocket<Build> {
                 todo::add_todo,
                 todo::get_todo,
                 todo::update_todo,
+                todo::update_order,
                 todo::delete_todo
             ],
         )

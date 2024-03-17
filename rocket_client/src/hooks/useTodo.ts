@@ -52,5 +52,16 @@ export default function useTodo() {
         }
     })
 
-    return { todos, isLoading, addTodo, mutateTodo, updateTodo, deleteTodo }
+    const changeOrder = useSWRMutation(`${import.meta.env.VITE_SERVER_URL}/todo`, async (url, { arg }: { arg: { id: string, replaceId: string } }) => {
+        return axios.patch(`${url}/${arg.id}`, {replace_id : arg.replaceId}).then(res => res.data);
+    }, {
+        onSuccess: () => {
+            mutateTodo()
+        },
+        onError: () => {
+            console.log("error");
+        }
+    })
+
+    return { todos, isLoading, addTodo, mutateTodo, updateTodo, deleteTodo, changeOrder }
 }

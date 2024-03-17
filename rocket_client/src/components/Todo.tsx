@@ -4,6 +4,8 @@ import CheckBox from "./checkbox/CheckBox"
 import cn from "../utils/cn"
 import { X } from "lucide-react"
 import useTodo from "../hooks/useTodo"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 interface TodoComp {
     todo: TodoProps
@@ -11,6 +13,12 @@ interface TodoComp {
 
 const Todo: React.FC<TodoComp> = ({ todo }) => {
     const { updateTodo: { trigger: triggerUpdate }, deleteTodo: { trigger: triggerDelete } } = useTodo();
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: todo._id.$oid });
+
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    }
 
     const handleCheck = useCallback(() => {
         triggerUpdate({ id: todo._id.$oid, data: { ...todo, completed: !todo.completed } })
@@ -22,7 +30,8 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
     }, [todo, triggerDelete])
 
     return (
-        <article onClick={handleCheck} className="bg-white/10 px-2 py-2 rounded cursor-pointer group/todo">
+        <article ref={setNodeRef} {...attributes} {...listeners} style={{ ...style, touchAction: 'none' }} onClick={handleCheck}
+            className="bg-white/10 px-2 py-2 rounded cursor-pointer group/todo">
             <div className="flex justify-start flex-row items-center gap-3">
                 <CheckBox key={todo._id.$oid} handleCheck={handleCheck} checked={todo.completed} />
                 <h4 className={cn("text-gray-200 flex-1", todo.completed && "line-through text-gray-200/50")}>{todo.body}</h4>
