@@ -2,7 +2,6 @@ use rocket::http::{ContentType, Header, Status};
 use rocket::{Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Method;
-// use dotenv_codegen;
 
 pub struct CORS;
 
@@ -16,7 +15,7 @@ impl Fairing for CORS {
     }
 
     async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(Header::new("Access-Control-Allow-Origin", dotenv!("ALLOWED_ORIGIN")));
+        response.set_header(Header::new("Access-Control-Allow-Origin", "http://localhost:5173, https://rocket-todo-ten.vercel.app"));
         response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS"));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));

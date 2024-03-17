@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate rocket;
-#[macro_use]
-extern crate dotenv_codegen;
 
 use mongo::connect_to_db;
 use rocket::{futures::TryFutureExt, Build, Rocket};
@@ -16,7 +14,7 @@ fn index() -> String {
 
 #[launch]
 async fn launch() -> Rocket<Build> {
-    let db: Option<Database> = match connect_to_db(dotenv!("DATABASE_NAME"))
+    let db: Option<Database> = match connect_to_db("todoApp")
         .map_err(|err| err.to_string())
         .await
     {
