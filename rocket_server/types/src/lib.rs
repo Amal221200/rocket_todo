@@ -7,8 +7,8 @@ pub struct Todo {
     pub id: Option<ObjectId>,
     pub body: String,
     pub completed: bool,
-    #[serde(default = "default_order")]
-    pub order: i32,
+    // #[serde(default = "default_order")]
+    // pub order: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,6 +16,6 @@ pub struct Todo {
     pub replace_id: String
 }
 
-fn default_order()-> i32 {
-    0
-}
+// fn default_order()-> i32 {
+//     0
+// }

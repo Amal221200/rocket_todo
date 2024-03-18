@@ -52,8 +52,8 @@ export default function useTodo() {
         }
     })
 
-    const changeOrder = useSWRMutation(`${import.meta.env.VITE_SERVER_URL}/todo`, async (url, { arg }: { arg: { id: string, replaceId: string } }) => {
-        return axios.patch(`${url}/${arg.id}`, {replace_id : arg.replaceId}).then(res => res.data);
+    const changeOrder = useSWRMutation(`${import.meta.env.VITE_SERVER_URL}/todo`, async (url, { arg }: { arg: { replacer: TodoProps[] } }) => {
+        return axios.patch(`${url}`, arg.replacer).then(res => res.data);
     }, {
         onSuccess: () => {
             mutateTodo()

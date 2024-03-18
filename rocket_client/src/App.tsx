@@ -21,12 +21,15 @@ function App() {
       return null
     }
 
-    triggerChangeOrder({ id: active.id as string, replaceId: over?.id as string }, {
-      optimisticData: (current) => {
-        const activeInd = getPos(current, active.id as string)
-        const overInd = getPos(current, over?.id as string)
+    const todosClone = structuredClone(todos)!;
+    const activeInd = getPos(todosClone, active.id as string)
+    const overInd = getPos(todosClone, over?.id as string)
 
-        return arrayMove(current, activeInd, overInd)
+    const result = arrayMove(todosClone, activeInd, overInd)
+
+    triggerChangeOrder({ replacer: result }, {
+      optimisticData: () => {
+        return result
       }
     })
   }
