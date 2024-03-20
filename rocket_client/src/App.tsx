@@ -30,6 +30,9 @@ function App() {
     triggerChangeOrder({ replacer: result }, {
       optimisticData: () => {
         return result
+      },
+      revalidate() {
+          return false
       }
     })
   }

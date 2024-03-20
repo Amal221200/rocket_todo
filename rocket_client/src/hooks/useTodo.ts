@@ -6,16 +6,6 @@ import { TodoProps } from "../utils/types";
 import useSWRMutation from "swr/mutation";
 import axios from "axios";
 
-export const mockTodos = [
-    { _id: { $oid: crypto.randomUUID() }, body: "Create a todo app", completed: false },
-    { _id: { $oid: crypto.randomUUID() }, body: "Learn rust", completed: false },
-    { _id: { $oid: crypto.randomUUID() }, body: "Understand js", completed: true },
-    { _id: { $oid: crypto.randomUUID() }, body: "Create zbpc app", completed: true },
-    { _id: { $oid: crypto.randomUUID() }, body: "React 19 release", completed: false },
-    { _id: { $oid: crypto.randomUUID() }, body: "Hello World", completed: true },
-    { _id: { $oid: crypto.randomUUID() }, body: "Create a todo app", completed: false }
-]
-
 export default function useTodo() {
     const { data: todos, mutate: mutateTodo, isLoading } = useSWR<TodoProps[]>(`${import.meta.env.VITE_SERVER_URL}/todo`, fetcher)
 
@@ -53,7 +43,7 @@ export default function useTodo() {
     })
 
     const changeOrder = useSWRMutation(`${import.meta.env.VITE_SERVER_URL}/todo`, async (url, { arg }: { arg: { replacer: TodoProps[] } }) => {
-        return axios.patch(`${url}`, arg.replacer).then(res => res.data);
+        return axios.patch(`${url}`, { replacer: arg.replacer }).then(res => res.data);
     }, {
         onSuccess: () => {
             mutateTodo()

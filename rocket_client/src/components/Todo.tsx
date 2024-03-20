@@ -24,8 +24,10 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
         triggerUpdate({ id: todo._id.$oid, data: { ...todo, completed: !todo.completed } })
     }, [todo, triggerUpdate])
 
-    const handleDelete = useCallback((e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+    const handleDelete = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.stopPropagation()
+        alert("Deletin");
+
         triggerDelete({ id: todo._id.$oid })
     }, [todo, triggerDelete])
 
@@ -35,7 +37,9 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
             <div className="flex justify-start flex-row items-center gap-3">
                 <CheckBox key={todo._id.$oid} handleCheck={handleCheck} checked={todo.completed} />
                 <h4 className={cn("text-gray-200 flex-1", todo.completed && "line-through text-gray-200/50")}>{todo.body}</h4>
-                <X className={cn("text-white opacity-0 group-hover/todo:opacity-100")} onClick={handleDelete} />
+                <button type="button" onClick={handleDelete} className="z-10">
+                    <X className={cn("text-white opacity-0 group-hover/todo:opacity-100")} />
+                </button>
             </div>
         </article>
     )
