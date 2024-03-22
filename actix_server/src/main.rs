@@ -4,20 +4,23 @@ use actix_web::{
     web::Data,
     App, HttpServer,
 };
-use wither::mongodb::Database;
-use todo_controllers::{add_todo, delete_todo, get_todos, update_order, update_todo, get_todo};
 use db::connect_to_db;
+use std::env;
+use todo_controllers::{add_todo, delete_todo, get_todo, get_todos, update_order, update_todo};
+use wither::mongodb::Database;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db: Database = connect_to_db(&"todoApp").await.expect("Failed to Connect");
-    let db_data: Data<Database> = Data::new(db);
+    dotenvy::dotenv().expect("Failed to load env");
 
+    let db: Database = connect_to_db(&env::var("DATABASE_NAME").expect("Failed to load db name")).await.expect("Failed to Connect");
+    let db_data: Data<Database> = Data::new(db);
+    
     HttpServer::new(move || {
         App::new()
             .wrap(
                 Cors::default()
-                    .allowed_origin("http://localhost:5173")
+                    .allowed_origin(&env::var("ALLOWED_ORIGIN").expect("Failed to load db name"))
                     .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE", "PUT"])
                     .allowed_headers(vec![CONTENT_TYPE, AUTHORIZATION, ACCEPT])
                     .supports_credentials()
