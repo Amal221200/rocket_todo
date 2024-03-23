@@ -16,8 +16,7 @@ async fn main(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
 
-    let db: Database = connect_to_db(&secrets.get("DATABASE_URL").expect("Failed to get url")
-    ,&secrets.get("DATABASE_NAME").expect("Failed to get name"))
+    let db: Database = connect_to_db(&secrets.get("DATABASE_URL").expect("Failed to get url"), &secrets.get("DATABASE_NAME").expect("Failed to get name"))
         .await
         .expect("Failed to Connect");
 
