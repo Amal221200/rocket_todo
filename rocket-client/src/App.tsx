@@ -5,6 +5,7 @@ import useTodo from "./hooks/useTodo";
 import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, TouchSensor, closestCorners, useSensor, useSensors } from "@dnd-kit/core";
 import { TodoProps } from "./utils/types";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { useCallback } from "react";
 
 const getPos = (tasks: TodoProps[], id: string) => tasks.findIndex((task) => task._id.$oid === id)
 
@@ -16,7 +17,7 @@ function App() {
     coordinateGetter: sortableKeyboardCoordinates
   }));
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
 
     if (active.id === over?.id) {
@@ -32,13 +33,9 @@ function App() {
     triggerChangeOrder({ replacer: result }, {
       optimisticData: () => {
         return result
-      },
-      revalidate() {
-        return false
       }
     })
-
-  }
+  }, [todos, triggerChangeOrder])
 
   if (!todos) {
     return

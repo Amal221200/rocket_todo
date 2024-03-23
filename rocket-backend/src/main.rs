@@ -6,7 +6,6 @@ use actix_web::{
 use db::connect_to_db;
 use shuttle_actix_web::ShuttleActixWeb;
 use shuttle_runtime::SecretStore;
-// use std::env;
 use todo_controllers::{add_todo, delete_todo, get_todo, get_todos, update_order, update_todo};
 use wither::mongodb::Database;
 
@@ -41,7 +40,7 @@ async fn main(
                 .service(add_todo)
                 .service(update_todo)
                 .service(update_order)
-                .service(delete_todo),
+                .service(delete_todo)
         );
     };
 
