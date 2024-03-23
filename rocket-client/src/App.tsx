@@ -5,6 +5,7 @@ import useTodo from "./hooks/useTodo";
 import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, TouchSensor, closestCorners, useSensor, useSensors } from "@dnd-kit/core";
 import { TodoProps } from "./utils/types";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+
 const getPos = (tasks: TodoProps[], id: string) => tasks.findIndex((task) => task._id.$oid === id)
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor), useSensor(KeyboardSensor, {
     coordinateGetter: sortableKeyboardCoordinates
   }));
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
@@ -32,22 +34,27 @@ function App() {
         return result
       },
       revalidate() {
-          return false
+        return false
       }
     })
+
   }
+
+  if (!todos) {
+    return
+  }
+
   return (
     <main className="relative min-w-[300px] min-h-[70vh] shadow-md rounded-lg bg-zinc-900 overflow-hidden space-y-4">
       <header className="bg-teal-500 px-4 py-2 flex justify-center">
         <h1 className="font-semibold">Rocket Todo</h1>
       </header>
       <DndContext onDragEnd={handleDragEnd} sensors={sensors} collisionDetection={closestCorners}>
-
         <TodosContainer className="h-[40vh] overflow-y-auto custom-scroll">
           {
-            todos ?
+            todos.length ?
               todos.map(todo => <Todo key={todo._id.$oid} todo={todo} />)
-              : <h3>No Todos</h3>
+              : <h3 className="text-white text-center">No Todos Yet!</h3>
           }
         </TodosContainer>
         <AddButton className="absolute z-10 bottom-2 right-2" />
