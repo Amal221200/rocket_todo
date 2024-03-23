@@ -15,12 +15,14 @@ use wither::{
     Model,
 };
 
-#[get("/todo")]
+#[get("")]
 async fn get_todos(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError> {
     Todo::sync(&db)
         .await
         .map_err(|_| TodoError::InternalServerError)?;
+
     let result = Todo::find(&db, None, None).await;
+
     match result {
         Ok(cursor) => {
             let todos: Vec<Todo> = cursor.try_collect().await.expect("Failed to convert");
@@ -30,7 +32,7 @@ async fn get_todos(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError> {
     }
 }
 
-#[get("/todo/{id}")]
+#[get("/{id}")]
 async fn get_todo(params: Path<TodoParams>, db: Data<Database>) -> Result<Json<Todo>, TodoError> {
     Todo::sync(&db)
         .await
@@ -53,7 +55,7 @@ async fn get_todo(params: Path<TodoParams>, db: Data<Database>) -> Result<Json<T
     }
 }
 
-#[post("/todo")]
+#[post("")]
 async fn add_todo(body: Json<NewTodoPayload>, db: Data<Database>) -> Result<Json<Todo>, TodoError> {
     match body.validate() {
         Ok(_) => {
@@ -77,7 +79,7 @@ async fn add_todo(body: Json<NewTodoPayload>, db: Data<Database>) -> Result<Json
     }
 }
 
-#[put("/todo/{id}")]
+#[put("/{id}")]
 async fn update_todo(
     params: Path<TodoParams>,
     body: Json<Todo>,
@@ -114,7 +116,7 @@ async fn update_todo(
     }
 }
 
-#[delete("/todo/{id}")]
+#[delete("/{id}")]
 async fn delete_todo(
     params: Path<TodoParams>,
     db: Data<Database>,
@@ -145,7 +147,7 @@ async fn delete_todo(
     }
 }
 
-#[patch("/todo")]
+#[patch("")]
 async fn update_order(
     db: Data<Database>,
     body: Json<ReplacerPayload>,
