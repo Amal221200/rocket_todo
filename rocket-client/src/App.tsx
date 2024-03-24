@@ -34,10 +34,12 @@ function App() {
     triggerChangeOrder({ replacer: result }, {
       optimisticData: () => {
         return result
+      },
+      onSuccess(){
+        toast.info("Order updated")
       }
     })
 
-    toast.info("Order updated")
   }, [todos, triggerChangeOrder])
 
   if (!todos) {

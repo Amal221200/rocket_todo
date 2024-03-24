@@ -28,9 +28,11 @@ const TodoForm = ({ className, ...props }: ComponentProps<'div'>) => {
             triggerAdd({ body: newTodo.body }, {
                 optimisticData: (currentData) => {
                     return [...currentData, newTodo]
+                },
+                onSuccess() {
+                    toast.success("Created your task")
                 }
             });
-            toast.success("Created your task")
             e.currentTarget.reset()
         })
     }, [onAddPopupClose, triggerAdd])

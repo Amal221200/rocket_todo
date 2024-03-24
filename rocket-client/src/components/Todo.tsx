@@ -28,9 +28,11 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
         triggerUpdate({ id: todo._id.$oid, data: updateTodo }, {
             optimisticData: (currentData) => {
                 return currentData.map((ele: { _id: { $oid: string } }) => ele._id.$oid === todo._id.$oid ? updateTodo : ele)
+            },
+            onSuccess(){
+                toast.info(updateTodo.completed ? "Task completed" : "Task Unchecked")
             }
         })
-        toast.info(updateTodo.completed ? "Task completed" : "Task Unchecked")
     }, [triggerUpdate])
 
     const handleDelete = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: string) => {
@@ -39,9 +41,11 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
         triggerDelete({ id }, {
             optimisticData: (currentData) => {
                 return currentData.filter((ele: { _id: { $oid: string } }) => ele._id.$oid !== id)
+            },
+            onSuccess(){
+                toast.error("Deleted your task")
             }
         })
-        toast.error("Deleted your task")
     }, [triggerDelete])
 
     return (
