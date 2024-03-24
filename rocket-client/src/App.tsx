@@ -6,6 +6,7 @@ import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, TouchSensor, c
 import { TodoProps } from "./utils/types";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback } from "react";
+import { toast } from "react-toastify";
 
 const getPos = (tasks: TodoProps[], id: string) => tasks.findIndex((task) => task._id.$oid === id)
 
@@ -35,6 +36,8 @@ function App() {
         return result
       }
     })
+
+    toast.info("Order updated")
   }, [todos, triggerChangeOrder])
 
   if (!todos) {
