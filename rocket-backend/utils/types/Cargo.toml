@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.197", features = ["derive"] }
-validator = { version = "0.17.0", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }
 
 todo_model = {path = "../../models/todo"}

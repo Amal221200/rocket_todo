@@ -57,7 +57,7 @@ async fn get_todo(params: Path<TodoParams>, db: Data<Database>) -> Result<Json<T
 
 #[post("")]
 async fn add_todo(body: Json<NewTodoPayload>, db: Data<Database>) -> Result<Json<Todo>, TodoError> {
-    match body.validate() {
+    match body.0.validate() {
         Ok(_) => {
             Todo::sync(&db)
                 .await
@@ -152,7 +152,7 @@ async fn update_order(
     db: Data<Database>,
     body: Json<ReplacerPayload>,
 ) -> Result<Json<bool>, TodoError> {
-    match body.validate() {
+    match body.replacer.validate() {
         Ok(_) => {
             Todo::sync(&db)
                 .await
