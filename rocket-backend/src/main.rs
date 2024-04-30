@@ -9,15 +9,16 @@ use shuttle_runtime::SecretStore;
 use todo_controllers::{add_todo, delete_todo, get_todo, get_todos, update_order, update_todo};
 use wither::mongodb::Database;
 
-
 #[shuttle_runtime::main]
 async fn main(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
 ) -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
-
-    let db: Database = connect_to_db(&secrets.get("DATABASE_URL").expect("Failed to get url"), &secrets.get("DATABASE_NAME").expect("Failed to get name"))
-        .await
-        .expect("Failed to Connect");
+    let db: Database = connect_to_db(
+        &secrets.get("DATABASE_URL").expect("Failed to get url"),
+        &secrets.get("DATABASE_NAME").expect("Failed to get db name"),
+    )
+    .await
+    .expect("Failed to Connect");
 
     let db_data: Data<Database> = Data::new(db);
 
@@ -27,7 +28,9 @@ async fn main(
                 .wrap(
                     Cors::default()
                         .allowed_origin(
-                            &secrets.get("ALLOWED_ORIGIN").expect("Failed to load db name"),
+                            &secrets
+                                .get("ALLOWED_ORIGIN")
+                                .expect("Failed to load allowed origin"),
                         )
                         .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE", "PUT"])
                         .allowed_headers(vec![CONTENT_TYPE, AUTHORIZATION, ACCEPT])
@@ -40,7 +43,7 @@ async fn main(
                 .service(add_todo)
                 .service(update_todo)
                 .service(update_order)
-                .service(delete_todo)
+                .service(delete_todo),
         );
     };
 

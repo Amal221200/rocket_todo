@@ -1,4 +1,4 @@
-import React, { useCallback } from "react"
+import { useCallback } from "react"
 import { TodoProps } from "../utils/types"
 import CheckBox from "./checkbox/CheckBox"
 import cn from "../utils/cn"
@@ -13,7 +13,7 @@ interface TodoComp {
 }
 
 const Todo: React.FC<TodoComp> = ({ todo }) => {
-    const { updateTodo: { trigger: triggerUpdate }, deleteTodo: { trigger: triggerDelete } } = useTodo();
+    const { updateTodo: { trigger: triggerUpdate }, deleteTodo: { trigger: triggerDelete, isMutating: isDeleting } } = useTodo();
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: todo._id.$oid });
 
     const style = {
@@ -29,7 +29,7 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
             optimisticData: (currentData) => {
                 return currentData.map((ele: { _id: { $oid: string } }) => ele._id.$oid === todo._id.$oid ? updateTodo : ele)
             },
-            onSuccess(){
+            onSuccess() {
                 toast.info(updateTodo.completed ? "Task completed" : "Task Unchecked")
             }
         })
@@ -37,12 +37,11 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
 
     const handleDelete = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: string) => {
         e.stopPropagation()
-
         triggerDelete({ id }, {
             optimisticData: (currentData) => {
                 return currentData.filter((ele: { _id: { $oid: string } }) => ele._id.$oid !== id)
             },
-            onSuccess(){
+            onSuccess() {
                 toast.error("Deleted your task")
             }
         })
@@ -55,8 +54,8 @@ const Todo: React.FC<TodoComp> = ({ todo }) => {
             <div ref={setNodeRef} {...attributes} {...listeners} className="flex-1">
                 <h4 className={cn("text-gray-200 flex-1", todo.completed && "line-through text-gray-200/50")}>{todo.body}</h4>
             </div>
-            <button type="button" onClick={(e) => handleDelete(e, todo._id.$oid)} className="z-10">
-                <X className={cn("text-white opacity-0 group-hover/todo:opacity-100")} />
+            <button type="button" onClick={(e) => handleDelete(e, todo._id.$oid)} disabled={isDeleting} className="z-10 group/delete">
+                <X className={cn("text-white opacity-0 group-hover/todo:opacity-100 group-disabled/delete:cursor-not-allowed group-disabled/delete:text-red-700")} />
             </button>
         </article>
     )
